@@ -1,0 +1,18 @@
+		p{
+			color: red;
+		}
+
+		form{
+			float: left;
+		}
+
+		#parameter_list{
+			float: right;
+		}
+		div{
+			margin-left: 20px;
+		}
+
+		#result{
+			margin:20px;
+		}

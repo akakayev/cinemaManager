@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="compile" name="cinemaManager" basedir=".">
+<dirname property="cinemaManager.basedir" file="${ant.file.cinemaManager}" />
+	<property name="cinemaManager.home" value="${cinemaManager.basedir}" />
+	<property name="cinemaManager.home.src" value="${cinemaManager.basedir}/src" />
+	<property name="cinemaManager.home.build" value="${cinemaManager.home}/build" />
+	<property name="cinemaManager.home.libs" value="${cinemaManager.home}/WebContent/WEB-INF/lib" />
+	<property name="cinemaManager.warname" value="${cinemaManager.home}/build/cinemaManager.war" />
+	<property name="tomcat" value="/opt/apache-tomcat-8.0.24"/>
+	<property name="tomcat.deployment" value="${tomcat}/webapps"/>
+	<property name="tomcat.bin" value="${tomcat}/bin"/>
+	
+	<path id="compile.classpath">
+		<fileset dir="${cinemaManager.home.libs}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="prepare" description="Create build directory and copy static content">
+		<mkdir dir="${cinemaManager.home.build}" />
+
+		<copy todir="${cinemaManager.home.build}/lib">
+			<fileset dir="${cinemaManager.home.libs}" />
+		</copy>
+		<copy todir="${cinemaManager.home.build}/lib">
+			<fileset dir="${cinemaManager.home}/WebContent" />
+		</copy>
+		<copy todir="${cinemaManager.home.build}">
+			<fileset dir="${cinemaManager.home.src}" >  
+				<include name="*.properties" />
+			</fileset>
+
+		</copy>
+		<copy todir="${cinemaManager.home.build}/Reports">
+			<fileset dir="${cinemaManager.home}/Reports">
+				<include name="*.xls" />
+			</fileset>
+		</copy>
+
+	</target>
+
+	<target name="compile" description="compile the source to the build directory" depends="prepare">
+		<javac debug="${compile.debug}" deprecation="${compile.deprecation}" destdir="${cinemaManager.home.build}" fork="false" srcdir="${cinemaManager.home.src}" source="1.7" encoding="UTF-8" includeantruntime="false">
+			<classpath refid="compile.classpath" />
+		</javac>
+	</target>
+
+	<target name="clean" description="Delete old build and dist directories">
+		<delete dir="${cinemaManager.home.build}" />
+	</target>
+
+	<target name="war" depends="compile">
+		<path id="cinemaManager.jar.classpath">
+			<fileset dir="${cinemaManager.home.build}/lib">				
+				<include name="*.jar" />
+			</fileset>
+		</path>
+	    <manifestclasspath property="jar.classpath" jarfile="${cinemaManager.jarname}">
+	      <classpath refid="cinemaManager.jar.classpath"/>
+	    </manifestclasspath>
+		<war warfile="${cinemaManager.warname}" basedir="${cinemaManager.home.build}" needxmlfile='false' webxml="${cinemaManager.home}/WebContent/WEB-INF/web.xml">
+		  	<fileset dir="${cinemaManager.home}/Reports"/>
+			<fileset dir="${cinemaManager.home}/WebContent"/>
+			<include name="**/*.class" />
+			<manifest>
+				<attribute name="Main-Class" value="com.cinemaManager.control.ParametersController" />
+				<attribute name="Class-Path" value="./ ${jar.classpath}"/>			
+			</manifest>
+		</war>
+		<antcall target="deploy"/>
+	</target>
+	
+	<target name="deploy">
+		<copy file="${cinemaManager.home.build}/cinemaManager.war" todir="${tomcat.deployment}"/>
+
+	</target>
+	
+	<target name="start">
+		<exec executable="${tomcat.bin}/startup.sh"/>
+	</target>
+</project>
